@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu Restoran</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    input, button { margin: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>📋 Daftar Menu Restoran</h1>
+
+  <input type="text" id="name" placeholder="Nama menu">
+  <input type="number" id="price" placeholder="Harga">
+  <button onclick="addMenu()">Tambah</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Nama</th><th>Harga</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="menuTable"></tbody>
+  </table>
+
+  <script>
+    const API = './';
+
+    function fetchMenus() {
+      fetch(API + 'read.php')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('menuTable');
+          table.innerHTML = '';
+          data.forEach(menu => {
+            table.innerHTML += `
+              <tr>
+                <td>${menu.id}</td>
+                <td><input value="${menu.name}" id="name-${menu.id}"></td>
+                <td><input value="${menu.price}" id="price-${menu.id}"></td>
+                <td>
+                  <button onclick="updateMenu(${menu.id})">Edit</button>
+                  <button onclick="deleteMenu(${menu.id})">Hapus</button>
+                </td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    function addMenu() {
+      const name = document.getElementById('name').value;
+      const price = document.getElementById('price').value;
+
+      fetch(API + 'create.php', {
+        method: 'POST',
+        body: JSON.stringify({ name, price })
+      })
+      .then(() => {
+        document.getElementById('name').value = '';
+        document.getElementById('price').value = '';
+        fetchMenus();
+      });
+    }
+
+    function updateMenu(id) {
+      const name = document.getElementById(`name-${id}`).value;
+      const price = document.getElementById(`price-${id}`).value;
+
+      fetch(API + 'update.php', {
+        method: 'POST',
+        body: JSON.stringify({ id, name, price })
+      }).then(() => fetchMenus());
+    }
+
+    function deleteMenu(id) {
+      fetch(API + 'delete.php', {
+        method: 'POST',
+        body: JSON.stringify({ id })
+      }).then(() => fetchMenus());
+    }
+
+    fetchMenus();
+  </script>
+</body>
+</html>
